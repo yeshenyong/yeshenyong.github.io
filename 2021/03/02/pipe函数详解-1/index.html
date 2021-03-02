@@ -6,14 +6,19 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="http://example.com">
-  <title>Archives | Hexo</title>
+  <title>高级I/O函数详解 | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="Hexo">
-<meta property="og:url" content="http://example.com/archives/index.html">
+  <meta name="description" content="dup、dup2函数简介：对于pipe函数、dup函数、dup2函数等对Linux高性能服务器编程的高级I&#x2F;O函数的详细代码于(https:&#x2F;&#x2F;github.com&#x2F;yeshenyong&#x2F;LInux_highServer_bookPrac),博客简介于(https:&#x2F;&#x2F;yeshenyong.github.io&#x2F;) 话不多少，进入主题 有时我们希望把标准输入重定向到一个文件，或者把标准输出重定向到一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="高级I&#x2F;O函数详解">
+<meta property="og:url" content="http://example.com/2021/03/02/pipe%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3-1/index.html">
 <meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="dup、dup2函数简介：对于pipe函数、dup函数、dup2函数等对Linux高性能服务器编程的高级I&#x2F;O函数的详细代码于(https:&#x2F;&#x2F;github.com&#x2F;yeshenyong&#x2F;LInux_highServer_bookPrac),博客简介于(https:&#x2F;&#x2F;yeshenyong.github.io&#x2F;) 话不多少，进入主题 有时我们希望把标准输入重定向到一个文件，或者把标准输出重定向到一">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2021-03-02T03:11:00.000Z">
+<meta property="article:modified_time" content="2021-03-02T05:56:35.673Z">
 <meta property="article:author" content="John Doe">
+<meta property="article:tag" content="高级I&#x2F;O函数">
 <meta name="twitter:card" content="summary">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
@@ -150,63 +155,129 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            
-  
-  
+            <article id="post-pipe函数详解-1" class="article article-type-post " itemscope itemprop="blogPost">
+  <div class="article-inner">
     
-    
-      
-      
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2021" class="archive-year">2021</a>
-        </div>
-        <div class="archives">
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/03/02/hello-world/" class="archive-article-date">
-  	<time datetime="2021-03-02T03:17:08.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-03-02</time>
-</a>
-        </div>
-    	 
+      <header class="article-header">
+        
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/03/02/hello-world/">Hello World</a>
+    <h1 class="article-title" itemprop="name">
+      高级I/O函数详解
     </h1>
   
 
-        <div class="article-info info-on-right">
-          
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/03/02/pipe%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3-1/" class="archive-article-date">
+        
+        <a href="/2021/03/02/pipe%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3-1/" class="archive-article-date">
   	<time datetime="2021-03-02T03:11:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-03-02</time>
 </a>
-        </div>
-    	 
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/03/02/pipe%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3-1/">高级I/O函数详解</a>
-    </h1>
-  
+        
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="dup、dup2函数"><a href="#dup、dup2函数" class="headerlink" title="dup、dup2函数"></a>dup、dup2函数</h2><p>简介：对于pipe函数、dup函数、dup2函数等对Linux高性能服务器编程的高级I/O函数的详细代码于(<a target="_blank" rel="noopener" href="https://github.com/yeshenyong/LInux_highServer_bookPrac),%E5%8D%9A%E5%AE%A2%E7%AE%80%E4%BB%8B%E4%BA%8E(https://yeshenyong.github.io/)">https://github.com/yeshenyong/LInux_highServer_bookPrac),博客简介于(https://yeshenyong.github.io/)</a></p>
+<p>话不多少，进入主题</p>
+<p>有时我们希望把标准输入重定向到一个文件，或者把标准输出重定向到一个网络连接(比如CGI编程，详细项目可参考<a target="_blank" rel="noopener" href="https://github.com/yeshenyong/TinyHttpServer">https://github.com/yeshenyong/TinyHttpServer</a> 中使用dup2函数对两个管道进行输出重定向与输入重定向操作)。这可以通过下面的用于复制文件描述符的dup或dup2函数来实现：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">dup</span><span class="params">( <span class="keyword">int</span> file_descriptor)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">dup2</span><span class="params">( <span class="keyword">int</span> file_descriptor_one, <span class="keyword">int</span> file_descriptor_two)</span></span>;</span><br></pre></td></tr></table></figure>
 
-        <div class="article-info info-on-right">
-          
+<pre><code>dup函数创建一个新的文件描述符，该新文件描述符和原有文件描述符file_descriptor指向相同的文件、管道胡总和网络连接。并且dup返回的文件描述符总是取系统当前可用最小整数值。dup2与dup类似，不过它将返回第一个不小于file_descriptor_two的整数值。dup和dup2系统调用失败返回-1并设置errno
+</code></pre>
+<p> 下列代码利用dup函数实现一个基本的CGI服务器</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;error.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 1024</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//client</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( argc &lt; <span class="number">2</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;usage: %s ip_address port_number\n&quot;</span>, basename( argv[<span class="number">0</span>] ));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* ip = argv[<span class="number">1</span>];</span><br><span class="line">    <span class="keyword">int</span> port = atoi( argv[<span class="number">2</span>] );</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">address</span>;</span></span><br><span class="line">    bzero( &amp;address, <span class="keyword">sizeof</span>( address ) );</span><br><span class="line">    address.sin_family = AF_INET;</span><br><span class="line">    inet_pton( AF_INET, ip, &amp;address.sin_addr );</span><br><span class="line">    address.sin_port = htons(port);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> sock = socket( PF_INET, SOCK_STREAM, <span class="number">0</span> );</span><br><span class="line">    assert( sock &gt;= <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> ret = bind( sock, (struct sockaddr* )&amp;address, <span class="keyword">sizeof</span>(address));</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = listen( sock, <span class="number">5</span> );</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">client</span>;</span></span><br><span class="line">    <span class="keyword">socklen_t</span> client_addrlength = <span class="keyword">sizeof</span>( client );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> connfd = accept( sock, (struct sockaddr*)&amp;client, &amp;client_addrlength );</span><br><span class="line">    <span class="keyword">if</span> (connfd &lt; <span class="number">0</span>)</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;errno is :%d\n&quot;</span>, <span class="number">5</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        close( STDOUT_FILENO );</span><br><span class="line">        <span class="comment">//使用dup函数，重定向输出，STDOUT_FILENO = 1;</span></span><br><span class="line">        dup( connfd );</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;abcd\n&quot;</span>);</span><br><span class="line">        close( connfd );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>vscode编译</p>
+<p>执行语句 ./epoll_Server_5.out [ip地址] [端口号]</p>
+<p>客户端使用 telnet [ip地址] [端口号] 进行访问</p>
+<pre><code> 在代码清单中，先关闭输出文件描述符STDOUT_FILENO（其值为1）然后复制socket文件描述符connfd。因为dup总是返回系统中最小的可用文件描述符，所以它的值实际上就是1，即之前关闭的标准输出文件描述符的值。这样一来，服务器输出到标准输出的内容（这里是”abcd“） 就会直接发送到客户端连接对应的socket上，因此printf调用的输出将被客户端获得（而不是显示在服务器端程序的终端上）。这就是CGI变成的基本工作原理。
+</code></pre>
+<hr>
+<h2 id="pipe函数"><a href="#pipe函数" class="headerlink" title="pipe函数"></a>pipe函数</h2><p>pipe函数（本章只介绍pipe函数的基本使用方式，并在后续文章中讨论如何使用管道来进行进程中的通信）</p>
+<p>pipe函数可用于创建一个管道，以实现进程间通信。其定义如下</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">pipe</span><span class="params">( <span class="keyword">int</span> fd[<span class="number">2</span>] )</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>pipe 函数的参数是一个包含两个int型整数的数组指针。该函数成功时返回0，并将一对打开的文件描述符值填入其参数指向的数组。如果失败，则返回-1并设置errno</p>
+<pre><code>通过pipe函数创建的这两个文件描述符fd[0]和fd[1]分别构成管道的两端，往fd[1]写入的数据可以从fd[0]读出。如果要实现双向的数据传输，就应该使用两个管道。
+</code></pre>
+<hr>
+<h2 id="readv、writev函数"><a href="#readv、writev函数" class="headerlink" title="readv、writev函数"></a>readv、writev函数</h2><p>readv函数将数据从文件描述符读到分散的内存块中，即分散读；writev函数则将多块分散的内存数据一并写入文件描述符中，即集中写。它们的定义如下</p>
+<pre><code>#include &lt;sys/uio.h&gt;
+ssize_t readv( int fd, const struct iovec* vector, int count);
+ssize_t writev( int fd, const struct iovec* vector, int count);
+</code></pre>
+<p> fd参数是被操作的目标文件描述符。vector参数的类型是iovec结构数组。</p>
+<p> 当Web服务器解析完一个HTTP请求之后，如果目标文档存在且客户具有读取权限，那么它需要发送一个http应答来传输改文档。</p>
+<p>下列代码中Web服务器上的集中写</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;error.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/uio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 1024</span></span><br><span class="line"><span class="comment">/* define two kinds http static code and static message */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span>* status_line[<span class="number">2</span>] = &#123;<span class="string">&quot;200 OK&quot;</span>,<span class="string">&quot;500 Internal server error&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//client</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( argc &lt; <span class="number">2</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;usage: %s ip_address port_number\n&quot;</span>, basename( argv[<span class="number">0</span>] ));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* ip = argv[<span class="number">1</span>];</span><br><span class="line">    <span class="keyword">int</span> port = atoi( argv[<span class="number">2</span>] );</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *file_name = argv[<span class="number">3</span>];</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">address</span>;</span></span><br><span class="line">    bzero( &amp;address, <span class="keyword">sizeof</span>( address ) );</span><br><span class="line">    address.sin_family = AF_INET;</span><br><span class="line">    inet_pton( AF_INET, ip, &amp;address.sin_addr );</span><br><span class="line">    address.sin_port = htons(port);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> sock = socket( AF_INET, SOCK_STREAM, <span class="number">0</span> );</span><br><span class="line">    assert( sock &gt;= <span class="number">0</span> );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> ret = bind( sock, (struct sockaddr*)&amp;address, <span class="keyword">sizeof</span>(address));</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = listen( sock, <span class="number">5</span> );</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">client</span>;</span></span><br><span class="line">    <span class="keyword">socklen_t</span> client_addrlength = <span class="keyword">sizeof</span>(client);</span><br><span class="line">    <span class="keyword">int</span> connfd = accept( sock, (struct sockaddr*)&amp;client, &amp;client_addrlength );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( connfd &lt; <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;error\n&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="comment">/* use for save http answer static row | headers and a space row buffer */</span></span><br><span class="line">        <span class="keyword">char</span> header_buf[ BUFFER_SIZE ];</span><br><span class="line">        <span class="built_in">memset</span>( header_buf, <span class="number">0</span>, BUFFER_SIZE );</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* use for save target file content&#x27;s app buffer */</span></span><br><span class="line">        <span class="keyword">char</span> *file_buf;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* use for get target file shuxing.such as file size and mulu */</span></span><br><span class="line">        <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">file_stat</span>;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">/* use for sign target if or not successfully file */</span></span><br><span class="line">        <span class="keyword">bool</span> valid = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/* buffer_area header_buf use how size space */</span></span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">//no exits</span></span><br><span class="line">        <span class="keyword">if</span>( (stat( file_name, &amp;file_stat )) &lt; <span class="number">0</span> )</span><br><span class="line">        &#123;</span><br><span class="line">            valid = <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">if</span> ( S_ISDIR( file_stat.st_mode ) ) <span class="comment">//is director</span></span><br><span class="line">            &#123;</span><br><span class="line">                valid = <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> <span class="keyword">if</span> (file_stat.st_mode &amp; S_IROTH)   <span class="comment">//have read root</span></span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">// 动态分配缓冲区 file_buf，并指定其大小为目标文件的大小file_stat.st_size+1，然后将目标文件读入缓冲区file_buf</span></span><br><span class="line">                <span class="keyword">int</span> fd = open( file_name, O_RDONLY );</span><br><span class="line">                file_buf = <span class="keyword">new</span> <span class="keyword">char</span> [ file_stat.st_size + <span class="number">1</span>];</span><br><span class="line">                <span class="built_in">memset</span>( file_buf, <span class="number">0</span>, file_stat.st_size + <span class="number">1</span>);</span><br><span class="line">                <span class="keyword">if</span>( read( fd, file_buf, file_stat.st_size) &lt; <span class="number">0</span> )</span><br><span class="line">                &#123;</span><br><span class="line">                    valid = <span class="literal">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span></span><br><span class="line">            &#123;</span><br><span class="line">                valid = <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span>( valid )</span><br><span class="line">        &#123;</span><br><span class="line"><span class="comment">// 将可变个参数(...)按照format格式化成字符串，然后将其复制到str中。</span></span><br><span class="line"><span class="comment">// (1) 如果格式化后的字符串长度 &lt; size，则将此字符串全部复制到str中，并给其后添加一个字符串结束符(&#x27;\0&#x27;)；</span></span><br><span class="line"><span class="comment">// (2) 如果格式化后的字符串长度 &gt;= size，则只将其中的(size-1)个字符复制到str中，并给其后添加一个字符串结束符(&#x27;\0&#x27;)，返回值为欲写入的字符串长度。</span></span><br><span class="line">            <span class="comment">// 下面这部分内容将http应答的状态行，“content-length” 头部字段和一个空行依次加入header_buf中</span></span><br><span class="line">            ret = <span class="built_in">snprintf</span>( header_buf, BUFFER_SIZE<span class="number">-1</span>, <span class="string">&quot;%s %s\r\n&quot;</span>, <span class="string">&quot;HTTP/1.1&quot;</span>, status_line[<span class="number">0</span>] );</span><br><span class="line">            len += ret;</span><br><span class="line">            ret = <span class="built_in">snprintf</span>( header_buf+len, BUFFER_SIZE<span class="number">-1</span>-len, <span class="string">&quot;Content-Length: %d\r\n&quot;</span>, file_stat.st_size);</span><br><span class="line">            len +=ret;</span><br><span class="line">            ret = <span class="built_in">snprintf</span>( header_buf+len, BUFFER_SIZE<span class="number">-1</span>-len, <span class="string">&quot;%s&quot;</span>, <span class="string">&quot;\r\n&quot;</span>);</span><br><span class="line"><span class="comment">// 利用writev 将header_buf和file_buf的内容一并写入</span></span><br><span class="line">            <span class="class"><span class="keyword">struct</span> <span class="title">iovec</span> <span class="title">iv</span>[2];</span></span><br><span class="line">            iv[ <span class="number">0</span> ].iov_base = header_buf;</span><br><span class="line">            iv[ <span class="number">0</span> ].iov_len = <span class="built_in">strlen</span>( header_buf );</span><br><span class="line">            iv[ <span class="number">1</span> ].iov_base = file_buf;</span><br><span class="line">            iv[ <span class="number">1</span> ].iov_len = <span class="built_in">strlen</span>(file_buf);</span><br><span class="line">            ret = writev( connfd, iv, <span class="number">2</span> );</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            ret = <span class="built_in">snprintf</span>( header_buf, BUFFER_SIZE - <span class="number">1</span>, <span class="string">&quot;%s %s\r\n&quot;</span>, <span class="string">&quot;HTTP/1.1&quot;</span>, status_line[<span class="number">1</span>]);</span><br><span class="line">            len += ret;</span><br><span class="line">            ret = <span class="built_in">snprintf</span>( header_buf+len, BUFFER_SIZE<span class="number">-1</span>-len, <span class="string">&quot;%s&quot;</span>, <span class="string">&quot;\r\n&quot;</span>);</span><br><span class="line">            send(connfd, header_buf, <span class="built_in">strlen</span>(header_buf), <span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        close( connfd );</span><br><span class="line">        <span class="comment">//内存释放</span></span><br><span class="line">        <span class="keyword">delete</span>[] file_buf;</span><br><span class="line">    &#125;</span><br><span class="line">    close( sock );</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们省略了HTTP请求的接受和解析，因为关注的重点是http应答的发送。我们直接将目标文件作为第三个参数传递给服务器程序，客户telnet到该服务器上即可获得该文件</p>
+<h2 id="sendFile函数"><a href="#sendFile函数" class="headerlink" title="sendFile函数"></a>sendFile函数</h2><p>sendFile函数在两个文件描述符之间直接传递数据（完全在内核中操作）,从而避免了内核缓冲区和用户缓冲区之间的数据拷贝，效率很高，这称为零拷贝。sendFile函数定义如下</p>
+<pre><code>#include &lt;sys/sendfile.h&gt;
+sszie_t sendfile(int out_fd, int in_fd, off_t* offset, size_t count);
+</code></pre>
+<p> 如下代码用sendfile函数传输文件</p>
+ <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;error.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/uio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/sendfile.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 1024</span></span><br><span class="line"><span class="comment">/* define two kinds http static code and static message */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span>* status_line[<span class="number">2</span>] = &#123;<span class="string">&quot;200 OK&quot;</span>,<span class="string">&quot;500 Internal server error&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//client</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( argc &lt; <span class="number">2</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;usage: %s ip_address port_number\n&quot;</span>, basename( argv[<span class="number">0</span>] ));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* ip = argv[<span class="number">1</span>];</span><br><span class="line">    <span class="keyword">int</span> port = atoi( argv[<span class="number">2</span>] );</span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *file_name = argv[<span class="number">3</span>];</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">address</span>;</span></span><br><span class="line">    bzero( &amp;address, <span class="keyword">sizeof</span>( address ) );</span><br><span class="line">    address.sin_family = AF_INET;</span><br><span class="line">    inet_pton( AF_INET, ip, &amp;address.sin_addr );</span><br><span class="line">    address.sin_port = htons(port);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> fiedfd = open( file_name, O_RDONLY );</span><br><span class="line">    assert( fiedfd &gt; <span class="number">0</span> );</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">stat</span> <span class="title">stat_buf</span>;</span></span><br><span class="line">    fstat( fiedfd, &amp;stat_buf );</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> sock = socket( AF_INET, SOCK_STREAM, <span class="number">0</span> );</span><br><span class="line">    assert( sock &gt;= <span class="number">0</span> );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> ret = bind( sock, (struct sockaddr*)&amp;address, <span class="keyword">sizeof</span>(address));</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = listen( sock, <span class="number">5</span> );</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">client</span>;</span></span><br><span class="line">    <span class="keyword">socklen_t</span> client_addrlength = <span class="keyword">sizeof</span>(client);</span><br><span class="line">    <span class="keyword">int</span> connfd = accept( sock, (struct sockaddr*)&amp;client, &amp;client_addrlength );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> ( connfd &lt; <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;error&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        sendfile( connfd, fiedfd, <span class="literal">NULL</span>, stat_buf.st_size );</span><br><span class="line">        close( connfd );</span><br><span class="line">    &#125;</span><br><span class="line">    close( sock );</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 我们将第三个参数传递给服务器程序，客户telnet到该服务器上即可获得该文件。相比于writev函数的代码，sendfile没有分配任何用户空间缓存，也没有执行读取文件的操作，但同样实现了文件的发送，其效率高很多。</p>
+<h2 id="mmap函数"><a href="#mmap函数" class="headerlink" title="mmap函数"></a>mmap函数</h2><p>mmap函数用于申请一段内存空间。我们可以将这段内存作为进程间通信的共享内存，也可以将文件直接映射到其中。munmap函数则释放由mmap创建的这段内存空间。它们的定义如下</p>
+<pre><code>#include &lt;sys/mman.h&gt;
+void* mmap(void *start, size_t length, int prot, int flags, int fd, off_t offset);
+int munmap(void *start, ssize_t length);
+</code></pre>
+<h2 id="splice函数"><a href="#splice函数" class="headerlink" title="splice函数"></a>splice函数</h2><p>splice函数用于在两个文件描述符之间移动数据，也是零拷贝操作。splice函数的定义如下：</p>
+<pre><code>#include &lt;fcntl.h&gt;
+ssize_t splice(int fd_in, loff_t*t off_in int fd_out, loff_t* off_out, size_t len, unsigned int flags);
+</code></pre>
+<p>  下面使用splice函数来实现一个零拷贝的回声服务器，它将客户端发送的数据原样返回给客户端。</p>
+  <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;error.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/uio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 1024</span></span><br><span class="line"><span class="comment">/* define two kinds http static code and static message */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span>* status_line[<span class="number">2</span>] = &#123;<span class="string">&quot;200 OK&quot;</span>,<span class="string">&quot;500 Internal server error&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//client</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( argc &lt; <span class="number">2</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;usage: %s ip_address port_number\n&quot;</span>, basename( argv[<span class="number">0</span>] ));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">const</span> <span class="keyword">char</span>* ip = argv[<span class="number">1</span>];</span><br><span class="line">    <span class="keyword">int</span> port = atoi( argv[<span class="number">2</span>] );</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">address</span>;</span></span><br><span class="line">    bzero( &amp;address, <span class="keyword">sizeof</span>( address ) );</span><br><span class="line">    address.sin_family = AF_INET;</span><br><span class="line">    inet_pton( AF_INET, ip, &amp;address.sin_addr );</span><br><span class="line">    address.sin_port = htons(port);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> sock = socket( AF_INET, SOCK_STREAM, <span class="number">0</span> );</span><br><span class="line">    assert( sock &gt;= <span class="number">0</span> );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> ret = bind( sock, (struct sockaddr*)&amp;address, <span class="keyword">sizeof</span>(address));</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = listen( sock, <span class="number">5</span> );</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">sockaddr_in</span> <span class="title">client</span>;</span></span><br><span class="line">    <span class="keyword">socklen_t</span> client_addrlength = <span class="keyword">sizeof</span>(client);</span><br><span class="line">    <span class="keyword">int</span> connfd = accept( sock, (struct sockaddr*)&amp;client, &amp;client_addrlength );</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>( connfd &lt; <span class="number">0</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot; error &quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">int</span> pipefd[<span class="number">2</span>];</span><br><span class="line">        assert( ret != <span class="number">-1</span>);</span><br><span class="line">        ret = pipe(pipefd); <span class="comment">/* create pipe */</span></span><br><span class="line">        <span class="comment">/* let connfd full in client data in pipe */</span></span><br><span class="line">        <span class="comment">//将connfd上的流入的客户数据定向到管道中</span></span><br><span class="line">        ret = splice( connfd, <span class="literal">NULL</span>, pipefd[<span class="number">1</span>], <span class="literal">NULL</span>, <span class="number">32768</span>, SPLICE_F_MORE  | SPLICE_F_MOVE);</span><br><span class="line">        assert( ret != <span class="number">-1</span>);</span><br><span class="line">        <span class="comment">//将管道的而输出定向到connfd客户连接文件描述符</span></span><br><span class="line">        ret = splice( pipefd[<span class="number">0</span>], <span class="literal">NULL</span>, connfd, <span class="literal">NULL</span>, <span class="number">32768</span>, SPLICE_F_MORE  | SPLICE_F_MOVE);</span><br><span class="line">        assert( ret != <span class="number">-1</span>);</span><br><span class="line">        close( connfd );</span><br><span class="line">    &#125;</span><br><span class="line">    close( sock );</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 通过splice函数将客户端的内容读入到pipefd[1]中，然后再使用splice函数从pipefd[0]中读出该内容到客户端，从而实现了简单高效的回声服务，相对应上文的pipe管道函数。整个过程来未执行recv/send操作，因此未设计用户空间和内核空间之间的数据拷贝</p>
+<h2 id="tee函数"><a href="#tee函数" class="headerlink" title="tee函数"></a>tee函数</h2><p>tee函数在两个管道文件描述符之间复制数据，也是零拷贝操作。它不消耗数据，因此源文件描述符上的数据任然可以用于后续的读操作。tee函数的原型如下</p>
+<pre><code>#include &lt;fcntl.h&gt;
+ssize_t tee( int fd_in, int fd_out, size_t len, unsigned int flags);
+</code></pre>
+<p> 该函数的参数的含义与splice相同（但fd_in和fd_out必须都是管道文件描述符）。</p>
+<p>下列代码是同时输出数据到终端和文件的程序<br> <figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/socket.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;netinet/in.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;arpa/inet.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;assert.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;error.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/uio.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> BUFFER_SIZE 1024</span></span><br><span class="line"><span class="comment">/* define two kinds http static code and static message */</span></span><br><span class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="keyword">char</span>* status_line[<span class="number">2</span>] = &#123;<span class="string">&quot;200 OK&quot;</span>,<span class="string">&quot;500 Internal server error&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//client</span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ( argc &lt; <span class="number">2</span> )</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;usage: %s ip_address port_number\n&quot;</span>, basename( argv[<span class="number">0</span>] ));</span><br><span class="line">        <span class="keyword">return</span> <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> filefd = open( argv[<span class="number">1</span>], O_CREAT | O_WRONLY | O_TRUNC, <span class="number">06666</span>);</span><br><span class="line">    assert(filefd &gt; <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">int</span> pipefd_stdout[<span class="number">2</span>];</span><br><span class="line">    <span class="keyword">int</span> ret = pipe(pipefd_stdout);</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> pipefd_file[<span class="number">2</span>];</span><br><span class="line">    ret = pipe( pipefd_file );</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = splice( STDIN_FILENO, <span class="literal">NULL</span>, pipefd_stdout[<span class="number">1</span>], <span class="literal">NULL</span>, <span class="number">32768</span>, SPLICE_F_MOVE | SPLICE_F_MORE);</span><br><span class="line">    assert (ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = tee( pipefd_stdout[<span class="number">0</span>], pipefd_file[<span class="number">1</span>], <span class="number">32768</span>, SPLICE_F_NONBLOCK);</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = splice(pipefd_file[<span class="number">0</span>], <span class="literal">NULL</span>, filefd, <span class="literal">NULL</span>, <span class="number">32768</span>, SPLICE_F_MORE | SPLICE_F_MOVE);</span><br><span class="line">    assert( ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    ret = splice(pipefd_stdout[<span class="number">0</span>], <span class="literal">NULL</span>, STDOUT_FILENO, <span class="literal">NULL</span>, <span class="number">32768</span>, SPLICE_F_MOVE | SPLICE_F_MORE);</span><br><span class="line">    assert (ret != <span class="number">-1</span>);</span><br><span class="line"></span><br><span class="line">    close( filefd);</span><br><span class="line">    close( pipefd_stdout[<span class="number">0</span>]);</span><br><span class="line">    close (pipefd_stdout[<span class="number">1</span>]);</span><br><span class="line">    close(pipefd_file[<span class="number">0</span>]);</span><br><span class="line">    close(pipefd_file[<span class="number">1</span>]);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="fcntl函数"><a href="#fcntl函数" class="headerlink" title="fcntl函数"></a>fcntl函数</h2><p>提供了对文件描述符的各种控制操作。fcntl函数的定义如下：</p>
+<pre><code>#include &lt;fcntl.h&gt;
+int fcnt1( int fd, int cmd, ...);
+
+代码清单
+int setnonblocking(int fd)
+&#123;
+        int old_option = fcntl(fd, F_GETFL);        //获取文件描述符旧的状态标志
+    int new_option = old_option | O_NONBLOCK;     //设置非阻塞状态
+    fcntl(fd, F_SETFL, new_option);        //返回文件描述符旧的状态标志
+    return old_option;
+ &#125;
+</code></pre>
+<p>fcntl操作可以有非常多种类型，此处不一一列举。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>linux高性能服务器编程</p>
+
+      
+
+      
+        <div class="page-reward">
+          <a href="javascript:;" class="page-reward-btn tooltip-top">
+            <div class="tooltip tooltip-east">
+            <span class="tooltip-item">
+              赏
+            </span>
+            <span class="tooltip-content">
+              <span class="tooltip-text">
+                <span class="tooltip-inner">
+                  <p class="reward-p"><i class="icon icon-quo-left"></i>谢谢你请我吃糖果<i class="icon icon-quo-right"></i></p>
+                  <div class="reward-box">
+                    
+                    
+                  </div>
+                </span>
+              </span>
+            </span>
+          </div>
+          </a>
+        </div>
+      
+    </div>
+    <div class="article-info article-info-index">
+      
+      
 	<div class="article-tag tagcloud">
 		<i class="icon-price-tags icon"></i>
 		<ul class="article-tag-list">
@@ -218,46 +289,115 @@
 		</ul>
 	</div>
 
-          
+      
 
+      
+
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
         </div>
-        <div class="clearfix"></div>
-    </header>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//pan.baidu.com/share/qrcode?url=http://example.com/2021/03/02/pipe%E5%87%BD%E6%95%B0%E8%AF%A6%E8%A7%A3-1/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
+      
+      <div class="clearfix"></div>
+    </div>
   </div>
 </article>
+
   
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-      	<div class="article-meta">
-	      	<a href="/2021/02/27/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" class="archive-article-date">
-  	<time datetime="2021-02-27T15:05:00.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2021-02-27</time>
-</a>
+<nav id="article-nav">
+  
+    <a href="/2021/03/02/hello-world/" id="article-nav-newer" class="article-nav-link-wrap">
+      <i class="icon-circle-left"></i>
+      <div class="article-nav-title">
+        
+          Hello World
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2021/02/27/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">我的第一篇博客文章</div>
+      <i class="icon-circle-right"></i>
+    </a>
+  
+</nav>
+
+
+<aside class="wrap-side-operation">
+    <div class="mod-side-operation">
+        
+        <div class="jump-container" id="js-jump-container" style="display:none;">
+            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
+                <i class="icon-font icon-back"></i>
+            </a>
+            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
+                <i class="icon-font icon-plane jump-plane"></i>
+            </div>
         </div>
-    	 
+        
+        
+    </div>
+</aside>
+
+
+
   
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2021/02/27/%E6%88%91%E7%9A%84%E7%AC%AC%E4%B8%80%E7%AF%87%E5%8D%9A%E5%AE%A2%E6%96%87%E7%AB%A0/">我的第一篇博客文章</a>
-    </h1>
+  
   
 
-        <div class="article-info info-on-right">
-          
-          
-
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
   
 
-    
+  
+
+  
 
 
           </div>
@@ -280,8 +420,8 @@
 	var yiliaConfig = {
 		mathjax: false,
 		isHome: false,
-		isPost: false,
-		isArchive: true,
+		isPost: true,
+		isArchive: false,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false,
